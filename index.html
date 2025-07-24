@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>箭頭方向遊戲</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Ensure it takes full viewport height */
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 1.5rem; /* Rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            max-width: 900px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        .arrow-display {
+            font-size: 10rem; /* Large arrow size */
+            font-weight: bold;
+            height: 150px; /* Fixed height to prevent layout shifts */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2rem;
+            transition: color 0.3s ease-in-out; /* Smooth color transition */
+        }
+        .instruction-text {
+            font-size: 2.25rem; /* Large instruction text */
+            font-weight: 600;
+            color: #334155; /* Darker gray for readability */
+            min-height: 60px; /* Fixed height for instruction text */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        /* Adjusted control-group for horizontal alignment */
+        .settings-group {
+            display: flex;
+            flex-direction: column; /* Default to column for small screens */
+            gap: 1.5rem; /* Space between setting items */
+            margin-bottom: 1.5rem;
+            align-items: center;
+            justify-content: center; /* Center items when they are in a row */
+        }
+        @media (min-width: 640px) { /* Apply flex-row on small screens and up */
+            .settings-group {
+                flex-direction: row;
+                gap: 2.5rem; /* More space when in a row */
+            }
+        }
+
+        .control-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .control-item label {
+            font-size: 1.25rem;
+            color: #475569;
+            font-weight: 500;
+            white-space: nowrap; /* Prevent label from wrapping */
+        }
+        .control-item input[type="number"] {
+            width: 80px; /* Adjusted width for number input */
+            padding: 0.75rem 0.5rem; /* Adjusted padding */
+            border-radius: 0.75rem;
+            border: 1px solid #cbd5e1;
+            font-size: 1.25rem;
+            text-align: center;
+            -moz-appearance: textfield; /* Hide arrows for Firefox */
+        }
+        .control-item input[type="number"]::-webkit-outer-spin-button,
+        .control-item input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none; /* Hide arrows for Chrome, Safari, Edge */
+            margin: 0;
+        }
+        /* Custom styling for checkbox */
+        .custom-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            width: 1.5rem; /* Size of the checkbox */
+            height: 1.5rem;
+            border: 2px solid #a0aec0; /* Border color */
+            border-radius: 0.375rem; /* Rounded corners for checkbox */
+            background-color: #edf2f7; /* Background color */
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .custom-checkbox:checked {
+            background-color: #3b82f6; /* Blue when checked */
+            border-color: #3b82f6;
+        }
+        .custom-checkbox:checked::before {
+            content: '✓'; /* Checkmark symbol */
+            display: block;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        .custom-checkbox:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5); /* Focus ring */
+        }
+
+
+        .button {
+            padding: 1rem 2.5rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+        .button-start {
+            background-color: #22c55e; /* Green */
+            color: white;
+        }
+        .button-start:hover {
+            background-color: #16a34a;
+            transform: translateY(-2px);
+        }
+        .button-start:active {
+            transform: translateY(0);
+        }
+        .button-stop {
+            background-color: #ef4444; /* Red */
+            color: white;
+        }
+        .button-stop:hover {
+            background-color: #dc2626;
+            transform: translateY(-2px);
+        }
+        .button-stop:active {
+            transform: translateY(0);
+        }
+        .instructions-section {
+            background-color: #f8fafc;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            text-align: left;
+            border: 1px solid #e2e8f0;
+        }
+        .instructions-section h2 {
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .instructions-section ul {
+            list-style: disc;
+            padding-left: 1.5rem;
+        }
+        .instructions-section li {
+            font-size: 1.15rem;
+            color: #475569;
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem;
+            }
+            .arrow-display {
+                font-size: 7rem;
+                height: 120px;
+            }
+            .instruction-text {
+                font-size: 1.75rem;
+                min-height: 50px;
+            }
+            .button {
+                padding: 0.8rem 2rem;
+                font-size: 1.25rem;
+            }
+            .control-item label {
+                font-size: 1.1rem;
+            }
+            .control-item input[type="number"] {
+                width: 70px; /* Further adjusted width for number input on smaller screens */
+                font-size: 1.1rem;
+            }
+            .instructions-section h2 {
+                font-size: 1.5rem;
+            }
+            .instructions-section li {
+                font-size: 1rem;
+            }
+        }
+        @media (max-width: 480px) {
+            .container {
+                padding: 1rem;
+            }
+            .arrow-display {
+                font-size: 5rem;
+                height: 100px;
+            }
+            .instruction-text {
+                font-size: 1.5rem;
+                min-height: 40px;
+            }
+            .button {
+                padding: 0.7rem 1.5rem;
+                font-size: 1rem;
+            }
+            .settings-group {
+                flex-direction: column; /* Ensure column layout on very small screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-4xl font-extrabold text-gray-800 mb-6">箭頭方向遊戲</h1>
+
+        <div id="arrowDisplay" class="arrow-display text-gray-900">?</div>
+        <div id="instructionText" class="instruction-text">準備好了嗎？</div>
+
+        <div class="flex flex-col sm:flex-row justify-center gap-4 mb-4">
+            <button id="startButton" class="button button-start">開始遊戲</button>
+            <button id="stopButton" class="button button-stop" disabled>停止遊戲</button>
+        </div>
+
+        <!-- Designer Information Section -->
+        <div class="text-center text-gray-600 text-sm mb-6">
+            <p>設計者：<a href="https://www.facebook.com/chungmenghsiu" target="_blank" class="text-blue-600 hover:underline">鍾孟修 職能治療師</a></p>
+            <p>新書：<a href="https://www.books.com.tw/products/0011022363?sloc=main" target="_blank" class="text-blue-600 hover:underline">讓你健康不失智的體智能</a></p>
+        </div>
+
+        <!-- Settings Group for horizontal alignment -->
+        <div class="settings-group">
+            <div class="control-item">
+                <label for="intervalInput">動畫間隔時間 (秒):</label>
+                <input type="number" id="intervalInput" value="2" min="1" max="5" class="rounded-xl focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div class="control-item">
+                <label for="showInstructions">顯示提示詞:</label>
+                <input type="checkbox" id="showInstructions" checked class="custom-checkbox">
+            </div>
+        </div>
+
+        <div class="instructions-section">
+            <h2>遊戲說明</h2>
+            <ul>
+                <li><strong>黑色箭頭:</strong> 單手指同個方向 (與箭頭方向一致)。</li>
+                <li><strong>紅色箭頭:</strong> 單手指反方向 (與箭頭方向相反)。</li>
+                <li><strong>綠色箭頭:</strong> 用嘴巴說出箭頭的方向 (例如：「上」、「左下」)。</li>
+                <li>您可以調整動畫間隔時間，預設為2秒，範圍1-5秒。</li>
+                <li>新增「顯示提示詞」選項，您可以選擇在遊戲中是否顯示動作提示。</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const arrowDisplay = document.getElementById('arrowDisplay');
+        const instructionText = document.getElementById('instructionText');
+        const intervalInput = document.getElementById('intervalInput');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const showInstructionsCheckbox = document.getElementById('showInstructions'); // Get checkbox element
+
+        let gameInterval;
+        let currentInterval = parseInt(intervalInput.value) * 1000; // Convert seconds to milliseconds
+
+        // Define arrow directions and their corresponding names (for green arrow)
+        const arrows = [
+            { symbol: '↑', name: '上' },
+            { symbol: '↓', name: '下' },
+            { symbol: '←', name: '左' },
+            { symbol: '→', name: '右' },
+            { symbol: '↖', name: '左上' },
+            { symbol: '↗', name: '右上' },
+            { symbol: '↙', name: '左下' },
+            { symbol: '↘', name: '右下' }
+        ];
+
+        // Define colors and their associated actions
+        const colors = [
+            { hex: '#000000', action: '單手指同個方向' }, // Black: Single finger same direction
+            { hex: '#FF0000', action: '單手指反方向' }, // Red: Single finger opposite direction
+            { hex: '#008000', action: '用嘴巴說' }      // Green: Say the direction
+        ];
+
+        // Function to generate a random arrow and color
+        function generateRandomArrow() {
+            const randomArrow = arrows[Math.floor(Math.random() * arrows.length)];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+            arrowDisplay.textContent = randomArrow.symbol;
+            arrowDisplay.style.color = randomColor.hex;
+
+            // Update instruction text based on checkbox state
+            if (showInstructionsCheckbox.checked) {
+                instructionText.textContent = randomColor.action + (randomColor.hex === '#008000' ? ` (${randomArrow.name})` : '');
+            } else {
+                instructionText.textContent = ''; // Clear the instruction text if not showing hints
+            }
+        }
+
+        // Function to start the game
+        function startGame() {
+            // Clear any existing interval to prevent multiple intervals running
+            clearInterval(gameInterval);
+
+            // Get the current interval from the input field
+            currentInterval = parseInt(intervalInput.value) * 1000;
+
+            // Validate interval input
+            if (isNaN(currentInterval) || currentInterval < 1000 || currentInterval > 5000) {
+                instructionText.textContent = "請輸入有效的間隔時間 (1-5秒)!";
+                arrowDisplay.textContent = "?";
+                arrowDisplay.style.color = '#000000';
+                return;
+            }
+
+            generateRandomArrow(); // Display the first arrow immediately
+            gameInterval = setInterval(generateRandomArrow, currentInterval);
+
+            startButton.disabled = true;
+            stopButton.disabled = false;
+            intervalInput.disabled = true; // Disable interval input during game
+            showInstructionsCheckbox.disabled = true; // Disable checkbox during game
+        }
+
+        // Function to stop the game
+        function stopGame() {
+            clearInterval(gameInterval);
+            arrowDisplay.textContent = '?';
+            arrowDisplay.style.color = '#000000';
+            instructionText.textContent = '遊戲已停止。'; // Always show this message when stopped
+            startButton.disabled = false;
+            stopButton.disabled = true;
+            intervalInput.disabled = false; // Enable interval input after game stops
+            showInstructionsCheckbox.disabled = false; // Enable checkbox after game stops
+        }
+
+        // Event Listeners
+        startButton.addEventListener('click', startGame);
+        stopButton.addEventListener('click', stopGame);
+
+        // Update interval when input changes (but only applies to next game start)
+        intervalInput.addEventListener('change', () => {
+            let value = parseInt(intervalInput.value);
+            if (isNaN(value) || value < 1) {
+                intervalInput.value = 1;
+            } else if (value > 5) {
+                intervalInput.value = 5;
+            }
+            currentInterval = parseInt(intervalInput.value) * 1000;
+        });
+
+        // Initial state
+        instructionText.textContent = '點擊「開始遊戲」來開始！';
+    </script>
+</body>
+</html>
