@@ -37,7 +37,7 @@
             justify-content: center;
             align-items: center;
             margin-bottom: 2rem;
-            transition: color 0.3s ease-in-out; /* Smooth color transition */
+            transition: color 0.3s ease-in-out, transform 0.3s ease-in-out; /* Smooth color and transform transition */
         }
         .instruction-text {
             font-size: 2.25rem; /* Large instruction text */
@@ -284,21 +284,21 @@
         const intervalInput = document.getElementById('intervalInput');
         const startButton = document.getElementById('startButton');
         const stopButton = document.getElementById('stopButton');
-        const showInstructionsCheckbox = document.getElementById('showInstructions'); // Get checkbox element
+        const showInstructionsCheckbox = document.getElementById('showInstructions');
 
         let gameInterval;
-        let currentInterval = parseInt(intervalInput.value) * 1000; // Convert seconds to milliseconds
+        let currentInterval = parseInt(intervalInput.value) * 1000;
 
-        // Define arrow directions and their corresponding names (for green arrow)
-        const arrows = [
-            { symbol: '↑', name: '上' },
-            { symbol: '↓', name: '下' },
-            { symbol: '←', name: '左' },
-            { symbol: '→', name: '右' },
-            { symbol: '↖', name: '左上' },
-            { symbol: '↗', name: '右上' },
-            { symbol: '↙', name: '左下' },
-            { symbol: '↘', name: '右下' }
+        // Define arrow directions with their rotation angles and names
+        const directions = [
+            { rotation: '0deg', name: '上' },
+            { rotation: '180deg', name: '下' },
+            { rotation: '-90deg', name: '左' },
+            { rotation: '90deg', name: '右' },
+            { rotation: '-45deg', name: '左上' },
+            { rotation: '45deg', name: '右上' },
+            { rotation: '-135deg', name: '左下' },
+            { rotation: '135deg', name: '右下' }
         ];
 
         // Define colors and their associated actions
@@ -310,15 +310,16 @@
 
         // Function to generate a random arrow and color
         function generateRandomArrow() {
-            const randomArrow = arrows[Math.floor(Math.random() * arrows.length)];
+            const randomDirection = directions[Math.floor(Math.random() * directions.length)];
             const randomColor = colors[Math.floor(Math.random() * colors.length)];
 
-            arrowDisplay.textContent = randomArrow.symbol;
+            arrowDisplay.textContent = '↑'; // Always display an upward arrow
             arrowDisplay.style.color = randomColor.hex;
+            arrowDisplay.style.transform = `rotate(${randomDirection.rotation})`; // Apply rotation
 
             // Update instruction text based on checkbox state
             if (showInstructionsCheckbox.checked) {
-                instructionText.textContent = randomColor.action + (randomColor.hex === '#008000' ? ` (${randomArrow.name})` : '');
+                instructionText.textContent = randomColor.action + (randomColor.hex === '#008000' ? ` (${randomDirection.name})` : '');
             } else {
                 instructionText.textContent = ''; // Clear the instruction text if not showing hints
             }
@@ -337,6 +338,7 @@
                 instructionText.textContent = "請輸入有效的間隔時間 (1-5秒)!";
                 arrowDisplay.textContent = "?";
                 arrowDisplay.style.color = '#000000';
+                arrowDisplay.style.transform = 'rotate(0deg)'; // Reset rotation
                 return;
             }
 
@@ -354,6 +356,7 @@
             clearInterval(gameInterval);
             arrowDisplay.textContent = '?';
             arrowDisplay.style.color = '#000000';
+            arrowDisplay.style.transform = 'rotate(0deg)'; // Reset rotation
             instructionText.textContent = '遊戲已停止。'; // Always show this message when stopped
             startButton.disabled = false;
             stopButton.disabled = true;
